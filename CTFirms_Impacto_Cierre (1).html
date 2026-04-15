@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CT Firms — Análisis de Impacto de Cierre</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f0f11;--bg2:#17181c;--bg3:#1e1f25;--bd:rgba(255,255,255,0.08);--bd2:rgba(255,255,255,0.14);--t:#e8e8ec;--t2:#9a9aaa;--t3:#5e5e72;--green:#4ade80;--amber:#fbbf24;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa;--lemon:#a3e635;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;}
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bd);padding:28px 40px 24px;}
+.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.hdr h1{font-size:22px;font-weight:600;letter-spacing:-.3px;}
+.hdr .sub{font-size:13px;color:var(--t2);margin-top:4px;}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);color:var(--amber);padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;}
+.badge-r{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3);color:var(--red);}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1px;background:var(--bd);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);}
+.kpi{background:var(--bg2);padding:20px 24px;}
+.kpi-l{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.kpi-v{font-size:26px;font-weight:600;letter-spacing:-.5px;}
+.kpi-s{font-size:12px;color:var(--t2);margin-top:3px;}
+.kpi-v.amber{color:var(--amber);} .kpi-v.red{color:var(--red);}
+.main{padding:32px 40px;max-width:1400px;}
+.stitle{font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px;}
+.g1{margin-bottom:24px;}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:24px;}
+.ctitle{font-size:13px;font-weight:600;color:var(--t2);margin-bottom:16px;}
+.ctitle span{color:var(--t3);font-weight:400;}
+.cw canvas{max-height:260px;} .cw-t canvas{max-height:340px;}
+.ibox{background:rgba(163,230,53,.06);border:1px solid rgba(163,230,53,.2);border-radius:8px;padding:14px 16px;margin-top:14px;}
+.ibox p{font-size:12px;color:#c4e87a;line-height:1.6;} .ibox strong{color:var(--lemon);}
+.abox{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:14px 16px;margin-top:14px;}
+.abox p{font-size:12px;color:#fca5a5;line-height:1.6;} .abox strong{color:var(--red);}
+.wbox{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:14px 16px;margin-top:14px;}
+.wbox p{font-size:12px;color:#fcd34d;line-height:1.6;} .wbox strong{color:var(--amber);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-bottom:1px solid var(--bd2);text-align:left;}
+td{padding:9px 12px;border-bottom:1px solid var(--bd);color:var(--t2);}
+tr:last-child td{border-bottom:none;} tr:hover td{background:rgba(255,255,255,.02);}
+.tdn{color:var(--t);font-weight:500;} .tdr{text-align:right;}
+.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;}
+.pill-r{background:rgba(248,113,113,.15);color:var(--red);}
+.pill-a{background:rgba(251,191,36,.15);color:var(--amber);}
+.pill-g{background:rgba(74,222,128,.15);color:var(--green);}
+.pill-b{background:rgba(96,165,250,.15);color:var(--blue);}
+.rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.rc{border-radius:8px;padding:14px 16px;}
+.rc.crit{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);}
+.rc.med{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);}
+.rc-l{font-size:11px;color:var(--t2);margin-bottom:4px;}
+.rc-v{font-size:20px;font-weight:700;}
+.rc.crit .rc-v{color:var(--red);} .rc.med .rc-v{color:var(--amber);}
+.rc-s{font-size:11px;color:var(--t3);margin-top:2px;}
+.divider{border:none;border-top:1px solid var(--bd);margin:28px 0;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.dot-g{background:var(--lemon);} .dot-r{background:var(--red);}
+.brow{display:flex;gap:10px;align-items:flex-start;}
+.brows{display:flex;flex-direction:column;gap:10px;}
+@media(max-width:768px){.main{padding:20px;}.hdr{padding:20px;}.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <h1>CT Firms — Análisis de Impacto de Cierre</h1>
+      <div class="sub">Base de 174 clientes · ARR $327.708 USD · Datos al 15 de abril 2026</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="badge">⚠ Decisión pendiente: sunset vs. migración</span>
+      <span class="badge badge-r">104 clientes con contrato trimestral</span>
+    </div>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="kpi-l">Clientes vigentes</div><div class="kpi-v">174</div><div class="kpi-s">170 vigentes · 4 en retención</div></div>
+  <div class="kpi"><div class="kpi-l">ARR total</div><div class="kpi-v amber">$327.708</div><div class="kpi-s">USD anualizados</div></div>
+  <div class="kpi"><div class="kpi-l">ARR promedio</div><div class="kpi-v amber">$1.882</div><div class="kpi-s">USD por cliente al año</div></div>
+  <div class="kpi"><div class="kpi-l">Tenure promedio</div><div class="kpi-v">13,6 m</div><div class="kpi-s">Mediana 12,6 meses</div></div>
+  <div class="kpi"><div class="kpi-l">En riesgo de churn</div><div class="kpi-v red">24</div><div class="kpi-s">$50.472 ARR · 15,4% del total</div></div>
+  <div class="kpi"><div class="kpi-l">Países</div><div class="kpi-v">13</div><div class="kpi-s">Chile 50% · México 29%</div></div>
+</div>
+
+<div class="main">
+
+  <!-- CONTEXTO -->
+  <div class="stitle">Contexto — por qué se creó y por qué no funcionó</div>
+  <div class="g2" style="margin-bottom:28px;">
+    <div class="card">
+      <div class="ctitle">Por qué se creó CTF</div>
+      <div class="brows">
+        <div class="brow"><div class="dot dot-g"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;">Capturar estudios pequeños (100–200 causas) que churneaban de CTE porque les quedaba grande y caro. No eran ICP core pero representaban pérdida activa.</p></div>
+        <div class="brow"><div class="dot dot-g"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;">Producto más barato y self-service: sin onboarding dedicado, motor de scraping liviano (1x/día), para competir con alternativas tipo RealCase.</p></div>
+        <div class="brow"><div class="dot dot-g"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;">Servir como puerta de entrada para migrar clientes litigantes hacia LemonSuite completo (CRM + cobranza).</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Qué no funcionó</div>
+      <div class="brows">
+        <div class="brow"><div class="dot dot-r"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;"><span style="color:var(--t);font-weight:500;">Motor lite falló.</span> Solo ~60% de éxito en notificaciones. Tuvieron que enchufar el motor de CTE — el diferencial de costo desapareció. Hoy el costo por causa es idéntico en ambos productos.</p></div>
+        <div class="brow"><div class="dot dot-r"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;"><span style="color:var(--t);font-weight:500;">Churn de ~40% anual.</span> Clientes entraban por precio pero salían porque para un estudio chico cada notificación es crítica. Bajó a ~25% tras 6 meses de estabilización, a un costo alto para una base pequeña.</p></div>
+        <div class="brow"><div class="dot dot-r"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;"><span style="color:var(--t);font-weight:500;">Nunca migró a LemonSuite.</span> Litigantes cobran por hito, no por hora — el modelo de LemonSuite no les hace fit sin cambios profundos.</p></div>
+        <div class="brow"><div class="dot dot-r"></div><p style="font-size:13px;color:var(--t2);line-height:1.6;"><span style="color:var(--t);font-weight:500;">Costo doble.</span> Cada desarrollo se hace por duplicado: front, soporte e ingeniería — todo para ~180 clientes con ticket bajo.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="ibox" style="margin-bottom:28px;"><p><strong>Por qué se plantea apagarlo hoy:</strong> CTF y CTE son esencialmente el mismo producto — mismo motor, mismo costo de infraestructura, las funcionalidades de CTF son un subconjunto de CTE. Lo que hoy son dos productos podría ser un plan más sencillo dentro de CTE con feature flags. La migración técnica sería simple: las causas comparten motor (se "apagan acá y prenden allá"), el 80% de los clientes solo usa notificaciones, y CTE ya tiene todo lo que CTF ofrece y más.</p></div>
+
+  <!-- DISTRIBUCIONES -->
+  <div class="stitle">Distribuciones de la base</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Distribución de tenure <span>— histograma en meses</span></div>
+      <div class="cw"><canvas id="cTenure"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Distribución de ARR <span>— USD por cliente (anualizado)</span></div>
+      <div class="cw"><canvas id="cARR"></canvas></div>
+      <div class="ibox"><p><strong>Concentración en el rango $960–$2.400 ARR:</strong> El 65% de los clientes factura entre $960 y $2.400 al año. Mediana $1.776. Hay una cola alta interesante (17 clientes sobre $3.000 ARR) que podría tener fit con CTE si el volumen de causas lo justifica.</p></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Distribución de causas contratadas</div>
+      <div class="cw"><canvas id="cCausas"></canvas></div>
+      <div class="ibox"><p><strong>59% tiene ≤100 causas (paquetes 50 y 100):</strong> Probablemente estudios muy pequeños con poco fit en CTE enterprise. El tramo 200–400 causas (33 clientes, $5.800 ARR) es el más interesante para evaluar migración.</p></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">ARR promedio por antigüedad <span>— USD</span></div>
+      <div class="cw"><canvas id="cTenurARR"></canvas></div>
+      <div class="wbox"><p><strong>El ARR cae en los clientes más antiguos:</strong> Los clientes de 24+ meses tienen ARR promedio $1.596, el más bajo de todos los rangos. Los clientes no expanden — no hay señal de upsell natural en dos años de historia.</p></div>
+    </div>
+  </div>
+  <div class="g1">
+    <div class="card">
+      <div class="ctitle">Tenure vs ARR por cliente <span>— cada punto es un cliente · hover para detalle</span></div>
+      <div class="cw-t"><canvas id="cScatter" style="max-height:340px;"></canvas></div>
+      <div class="ibox"><p><strong>Sin correlación entre tenure y ARR:</strong> Clientes con alto ARR existen en todos los rangos de antigüedad. No hay evidencia de que el tiempo en el producto genere expansión de revenue — confirma el problema de ICP.</p></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="stitle">Geografía y segmento</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">ARR por país <span>— USD</span></div>
+      <div class="cw"><canvas id="cCountry"></canvas></div>
+      <div class="ibox"><p><strong>Chile + México = 79% del ARR:</strong> $260.232 USD entre ambos. La migración a CTE aplica principalmente en Chile donde CTE tiene más presencia. México y Perú requieren evaluación separada.</p></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">ARR por segmento</div>
+      <div class="cw"><canvas id="cSeg"></canvas></div>
+      <div class="wbox"><p><strong>37% de la base sin segmentación confiable:</strong> 65 clientes caen en "Otro/Sin criterio". Es una deuda de datos importante antes de tomar la decisión de migración.</p></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="stitle">Riesgo de churn y exposición contractual</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Clientes en riesgo identificado</div>
+      <div class="rc-grid">
+        <div class="rc crit"><div class="rc-l">Crítico</div><div class="rc-v">14 clientes</div><div class="rc-s">$31.032 ARR</div></div>
+        <div class="rc med"><div class="rc-l">Medio</div><div class="rc-v">10 clientes</div><div class="rc-s">$19.440 ARR</div></div>
+      </div>
+      <div class="abox"><p><strong>150 clientes sin riesgo asignado (86%).</strong> El dato de riesgo es un proxy mínimo — la exposición real puede ser mucho mayor al anunciar un cierre. Un cliente "sin riesgo" hoy puede churnar inmediatamente ante una notificación de sunset.</p></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Distribución por tipo de contrato</div>
+      <div class="cw"><canvas id="cContract"></canvas></div>
+      <div class="abox"><p><strong>60% con contrato trimestral (104 clientes, $186.696 ARR):</strong> Pueden salir en cualquier momento. Solo el 33% tiene contrato anual ($115.296 ARR), que es el único segmento con tiempo para una migración ordenada.</p></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="stitle">Clientes con riesgo de churn identificado</div>
+  <div class="card g1">
+    <table><thead><tr><th>Cliente</th><th>País</th><th class="tdr">ARR (USD)</th><th class="tdr">Tenure (m)</th><th>Riesgo</th></tr></thead>
+    <tbody id="riskTbody"></tbody></table>
+  </div>
+
+  <div class="stitle">Todos los clientes <span style="color:var(--t3);font-weight:400;font-size:12px;">— ordenados por ARR descendente</span></div>
+  <div class="card" style="margin-bottom:40px;">
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Segmento</th><th>País</th><th class="tdr">ARR (USD)</th><th class="tdr">Causas</th><th class="tdr">Tenure (m)</th><th>Contrato</th><th>Riesgo de churn</th></tr></thead>
+    <tbody id="allTbody"></tbody></table>
+  </div>
+
+</div>
+
+<script>
+const RAW = [["Erika Alejandra Maira Bravo", "Estudio Legal", "Chile", 924, 50, 23.9, 12, ""], ["Borgoño Abogados Ltda", "Estudio Legal", "Chile", 924, 50, 19.7, 3, ""], ["Castillo Yoma Abogados", "Est. ≤200 causas", "Chile", 924, 50, 22.9, 3, ""], ["Asesorias Juridicas y Comerciales Balcazar Casanova y Asociados Limitada", "Estudio Legal", "Chile", 924, 50, 19.6, 3, ""], ["Arellano y compañia limitada", "Est. ≤200 causas", "Chile", 924, 50, 26.2, 3, ""], ["Mackenna y Cia LMTD", "Estudio Legal", "Chile", 1152, 50, 20.7, 3, ""], ["Mildred Barrientos Sepulveda", "—", "Chile", 1248, 50, 5.0, 3, ""], ["SAMBUCETI Y MEZA ABOGADOS LIMITADA", "—", "Chile", 1248, 50, 5.7, 3, ""], ["Meneses Servicios Legales ltda", "—", "Chile", 1704, 100, 7.4, 3, ""], ["Asesorías Awad y Compañía Limitada", "Est. ≤200 causas", "Chile", 1248, 50, 16.8, 12, ""], ["STE Energy Chile Spa", "—", "Chile", 1248, 50, 6.0, 12, ""], ["Corretaje de Propiedades y Asesoría Judicial A SU ORDEN E.I.R.L", "—", "Chile", 1248, 50, 6.2, 3, ""], ["GARCIA & RUIZ-TAGLE SERVICIOS LEGALES LIMITADA", "Sin criterio", "Chile", 1320, 50, 12.7, 12, ""], ["CAROLINA LEYTON ECHENIQUE", "Est. ≤200 causas", "Chile", 1848, 100, 22.6, 3, ""], ["Agricola Porvenir Ltda", "Fiscalía", "Chile", 1392, 100, 22.3, 12, ""], ["Sociedad de profesionales Serrano Abogados Limitada", "—", "Chile", 1392, 50, 5.1, 3, ""], ["María José Escobar Opazo", "Estudio Jurídico", "Chile", 1704, 100, 10.8, 3, ""], ["Nordend Servicios Jurídicos Limitada", "Estudio Legal", "Chile", 1848, 100, 15.2, 6, ""], ["SOCIEDAD RMM ABOGADOS SPA", "Estudio Legal", "Chile", 1392, 100, 23.0, 3, ""], ["Jullian & Asociados Limitada", "Est. ≤200 causas", "Chile", 1392, 50, 18.1, 3, ""], ["Comercial El Matico Ltda.", "Fiscalía", "Chile", 1392, 50, 13.4, 3, ""], ["Sociedad Legal Paine Pipon Limitada", "—", "Chile", 1392, 50, 6.2, 3, ""], ["ASESORÍAS E INVERSIONES PGE LIMITADA", "Estudio Legal", "Chile", 1392, 100, 19.6, 3, ""], ["Spoerer y Valdes Limitada", "Estudio Legal", "Chile", 1392, 100, 21.2, 3, ""], ["Servicios Profesionales Rosado y Cia LTDA.", "—", "Chile", 1392, 50, 3.9, 3, ""], ["JMCM Abogados Limitada", "Estudio Legal", "Chile", 1620, 100, 28.5, 3, ""], ["Abogados Echeverria & Lyon Limitada", "Estudio Legal", "Chile", 1848, 100, 17.0, 12, ""], ["Rabat Abogados SPA", "Est. ≤200 causas", "Chile", 1392, 50, 18.7, 12, ""], ["RIVERA & CÍA. ABOGADOS", "—", "Chile", 1392, 50, 5.8, 3, ""], ["Rossel y Fuentes Abogados Limitada", "—", "Chile", 1572, 100, 10.6, 3, ""], ["Defensa y Justicia Asesorias Jurídicas Limitada", "—", "Chile", 1584, 100, 10.5, 3, ""], ["SOCIEDAD MARCHANT MERCADO Y COMPAÑÍA ABOGADOS LIMITADA", "Est. ≤200 causas", "Chile", 2316, 100, 24.3, 12, ""], ["Rosende y Hauach Abogados Asociados Limitada", "—", "Chile", 1668, 100, 7.0, 3, ""], ["TSP LEGAL SPA", "—", "Chile", 1668, 100, 4.4, 3, ""], ["EMPRESA DE ABOGADOS LIMITADA", "—", "Chile", 1668, 100, 10.2, 3, ""], ["MAB ASESORIAS E INVERSIONES LIMITADA", "Est. ≤200 causas", "Chile", 2028, 150, 22.1, 3, ""], ["Eugenio Medina Parra", "—", "Chile", 1848, 100, 5.3, 3, ""], ["Marcos Contreras Enos", "—", "Chile", 1848, 100, 5.5, 3, ""], ["GUTIÉRREZ Y VALDES ABOGADOS LIMITADA", "Sin criterio", "Chile", 1848, 100, 12.9, 6, ""], ["José Tomás del Campo de la Rosa", "Estudio Legal", "Chile", 1848, 100, 11.5, 12, ""], ["Servicios Profesionales González Spoerer Limitada", "Est. ≤200 causas", "Chile", 1848, 100, 15.7, 12, ""], ["ARAB ABOGADOS SPA", "Estudio Legal", "Chile", 2316, 200, 12.5, 3, ""], ["Javier Andres Ortiz Plaza", "—", "Chile", 1848, 100, 10.3, 12, ""], ["María Isabel Guillén Sepúlveda", "Est. ≤200 causas", "Chile", 1848, 100, 14.9, 3, ""], ["MACKENNA IRARRAZABAL CUCHACIVICH PAZ ABOG. LTDA.", "—", "Chile", 1848, 50, 4.8, 12, ""], ["FERNANDEZ Y COMPANIA LIMITADA", "—", "Chile", 1848, 100, 5.0, 3, ""], ["CASERA & CALDERÓN ABOGADOS LIMITADA", "—", "Chile", 2076, 200, 9.9, 12, ""], ["ESTUDIO JURÍDICO Y COMUNICACIONAL GÓMEZ ROJAS LTDA", "—", "Chile", 2076, 200, 9.7, 12, ""], ["Rojas y Padilla Abogados Limitada", "—", "Chile", 2076, 200, 4.1, 3, ""], ["Jose Miguel Nalda Mujica y Cia", "Estudio Legal", "Chile", 2724, 400, 4.3, 12, ""], ["Inversiones y Recaudaciones Latam SpA", "—", "Chile", 2124, 200, 7.8, 3, ""], ["Asesorías Silva y Compañía Limitada", "—", "Chile", 2172, 200, 8.9, 12, ""], ["CHAHUÁN LETELIER ABOGADOS LIMITADA", "Estudio Legal", "Chile", 1152, 100, 12.2, 3, ""], ["Felipe Acevedo Díaz", "Est. ≤200 causas", "Chile", 2316, 200, 20.7, 6, ""], ["Kauciona", "Estudio Legal", "Chile", 228, 200, 17.0, 3, ""], ["Duarte Abogados Limitada", "Estudio Legal", "Chile", 2316, 200, 17.0, 12, ""], ["SYLVIA RECABARREN GUZMAN", "—", "Chile", 2772, 300, 7.9, 3, ""], ["Silva Becerra Abogados limitada", "Sin criterio", "Chile", 2316, 200, 12.0, 3, ""], ["HVDG ABOGADOS LIMITADA", "Est. ≤200 causas", "Chile", 2316, 200, 19.1, 3, ""], ["Cubillos y Delgado Abogados Limitada", "—", "Chile", 3144, 400, 9.0, 3, ""], ["QS Abogados Limitada", "—", "Chile", 2352, 300, 6.4, 3, ""], ["BARRIENTOS ABOGADOS LIMITADA", "Estudio Jurídico", "Chile", 0, 0, 13.5, 3, ""], ["Jurídicas Ricardo Puelma Jiron SpA", "Est. ≤200 causas", "Chile", 3048, 200, 17.7, 12, ""], ["Cáceres Camiruaga y Compañía Servicios Profesionales Limitada", "Estudio Jurídico", "Chile", 2700, 400, 13.2, 6, ""], ["Recabarren & Asociados Abogados Limitada", "—", "Chile", 2772, 300, 7.2, 12, ""], ["Martinez y Rodas Abogados Limitada", "Est. >200 causas", "Chile", 2772, 400, 22.0, 3, ""], ["LYD ASOCIADAS LIMITADA", "Est. >200 causas", "Chile", 5364, 1000, 19.5, 3, ""], ["Vergara y Compañía", "Est. >200 causas", "Chile", 3000, 400, 16.8, 3, ""], ["Sociedad de Profesionales Abogados Carvallo Migliaro y Compañía Limitada", "Estudio Jurídico", "Chile", 696, 200, 11.1, 3, ""], ["SERVICIOS JURÍDICOS CALORIO Y PASTÉN LIMITADA", "Estudio Legal", "Chile", 3000, 400, 8.4, 3, ""], ["LABORATORIO TÉCNICO DE SUELOS Y HORMIGONES LIMITADA", "—", "Chile", 3384, 500, 6.6, 12, ""], ["Estudio Navarro Abogados SPA", "—", "Chile", 3792, 600, 9.2, 12, ""], ["LEGAL SOLUTIONS SpA", "Est. >200 causas", "Chile", 5088, 1000, 17.5, 3, ""], ["Gordillo Cuzzi Saco Abogados S.A.C.", "Estudio Legal", "Perú", 576, 50, 28.4, 3, ""], ["POSADA & NAVARRO ABOGADOS ASOCIADOS S.A.S.", "Estudio Legal", "Colombia", 588, 50, 23.9, 12, ""], ["GRUND Abogados LLP", "Estudio Legal", "Ecuador", 708, 50, 23.7, 12, ""], ["Óscar Pico Solórzano", "Estudio Legal", "Ecuador", 780, 50, 22.7, 3, ""], ["EXPRESIÓN JURÍDICA CONSULTORIA INTEGRAL", "Est. ≤200 causas", "México", 828, 50, 22.6, 3, ""], ["MURILLO ROMERO ABOGADOS", "Est. ≤200 causas", "México", 828, 50, 21.6, 3, ""], ["CASTILLO RACINES CONSULTORES S.A.S.", "Estudio Legal", "Colombia", 840, 100, 22.3, 3, ""], ["David Rodríguez Lawyers Group SAS", "Estudio Legal", "Colombia", 1056, 50, 4.1, 3, ""], ["JOSE COTO", "—", "Venezuela", 1176, 50, 6.2, 3, ""], ["VALERIA UGALDE OCHOA", "Est. ≤200 causas", "México", 1668, 100, 17.7, 3, ""], ["Consultora Sanchez Peña", "—", "Bolivia", 1356, 100, 9.9, 6, ""], ["Valparian SAS", "Estudio Jurídico", "Ecuador", 1572, 100, 11.2, 3, ""], ["Salazar & Zuñiga Abogados SAC", "Estudio Legal", "Perú", 1572, 100, 16.6, 6, ""], ["ESPAILLAT MATOS & ASOCIADOS SRL", "—", "República Dominicana", 1572, 100, 4.6, 3, ""], ["DIEGO CARLO TAPIA MAZZOTTI", "Estudio Jurídico", "Perú", 1644, 50, 12.5, 3, ""], ["MUVA CONSULTORES SAS", "—", "Colombia", 1740, 200, 7.6, 3, ""], ["GRUPO LEGAL ASESORÍAS S.A.S", "—", "Colombia", 1776, 200, 8.9, 3, ""], ["María del Pilar Beceiro Leles da Silva", "Est. ≤200 causas", "Uruguay", 1776, 200, 14.8, 3, ""], ["DISTRITO LEGAL ESTUDIOS JURIDICOS SAS", "—", "Colombia", 1776, 200, 6.1, 6, ""], ["Aptimus Legal C.A.", "Est. ≤200 causas", "Venezuela", 1776, 200, 17.0, 12, ""], ["Florencia Tornadu Golan", "Est. ≤200 causas", "Paraguay", 1776, 200, 15.8, 3, ""], ["ANDERSEN - PROFILE S.A.S", "—", "Ecuador", 1788, 50, 8.2, 3, ""], ["LEGALCONSULTORES LGC S.A.S", "—", "Ecuador", 1968, 200, 8.1, 3, ""], ["ZUZUNAGA & ASSERETO ABOGADOS S. CIVIL DE R.L.", "Estudio Legal", "Perú", 1968, 200, 16.3, 12, ""], ["CORNEJO & SANTIVAÑEZ ABOGADOS S.C.R.L.", "Estudio Legal", "Perú", 5028, 1000, 16.5, 3, ""], ["Lopez&Cifuentes Law Firm S.A.S", "Estudio Jurídico", "Ecuador", 2556, 300, 11.3, 3, ""], ["MEDELLIN & DURAN ABOGADOS SAS", "Sin segmento", "Colombia", 2556, 400, 15.2, 6, ""], ["Cuatrecasas S.A.S.", "Estudio Legal", "Colombia", 3600, 400, 15.1, 12, ""], ["Quijandría Asesoramiento Inmobiliario y Defensa Legal EIRL.", "—", "Perú", 1008, 50, 4.6, 3, ""], ["Bufete Aquino Matus", "Estudio Jurídico", "Guatemala", 3888, 1000, 12.4, 3, ""], ["Centro de Conciliacion Negociacion Leon Dehon-Cecold", "—", "Perú", 1416, 100, 4.1, 3, ""], ["FNC CONSULTORES SAC", "—", "Perú", 1572, 100, 8.3, 12, ""], ["GRUPO  MAE & ASOCIADOS S.A.C", "Est. ≤200 causas", "Perú", 1968, 200, 14.3, 12, ""], ["ESTUDIO JURIDICO RECUCAPITAL SAC", "—", "Perú", 3288, 700, 10.6, 6, ""], ["RCA ABOGADOS", "Estudio Legal", "México", 948, 50, 11.1, 12, ""], ["DIEGO EDUARDO GONZALEZ GUERRA", "Est. ≤200 causas", "México", 1044, 50, 14.5, 12, ""], ["ALBA LARRAGA ABOGADOS", "—", "México", 1056, 50, 7.0, 12, ""], ["SAJEIN", "Sin criterio", "México", 1056, 30, 11.3, 3, ""], ["MEOUCHI ABOGADOS Y CONSULTORES", "—", "México", 1068, 50, 8.2, 12, ""], ["JOEL SANCHEZ CELAYA", "Est. ≤200 causas", "México", 1104, 50, 14.4, 12, ""], ["Consultoría Especializada de San Miguel de Allende S.C.", "Estudio Jurídico", "México", 1116, 50, 12.0, 3, ""], ["FIAT MANAGEMENT", "Est. ≤200 causas", "México", 1164, 50, 18.2, 12, ""], ["ALEJANDRO RIVERA GARCIA", "Est. ≤200 causas", "México", 1164, 100, 23.5, 3, ""], ["GABRIEL FERNANDEZ COVARRUBIAS", "Est. ≤200 causas", "México", 2700, 500, 23.2, 3, ""], ["ESCUTIA SANTOS", "Est. ≤200 causas", "México", 1164, 100, 21.1, 3, ""], ["Lucila Lorena Zaack Vázquez", "Est. ≤200 causas", "México", 3072, 500, 23.0, 3, ""], ["JUAN PABLO GOMEZ FIERRO", "—", "México", 1176, 50, 9.3, 12, ""], ["FSL ABOGADOS", "Est. ≤200 causas", "México", 1392, 200, 21.4, 12, ""], ["VIESCA AGUIRRE Y LOPEZ S.C", "—", "México", 1416, 100, 9.9, 3, ""], ["ALB ABOGADOS", "—", "México", 1416, 100, 9.0, 3, ""], ["OSVALDO ORDORICA HODGERS", "Estudio Legal", "México", 1416, 100, 10.8, 12, ""], ["HACAR PARTNERS", "Estudio Legal", "México", 1416, 100, 28.1, 12, ""], ["SOLORZANO Y LINALDI", "Estudio Legal", "México", 1440, 100, 21.8, 3, ""], ["YASSER MARTINEZ & GARCES ECHEVERRIA ABOGADOS", "Estudio Legal", "México", 1548, 50, 13.1, 12, ""], ["FERNANDEZ Y ESPINO JUAREZ", "Est. ≤200 causas", "México", 1932, 200, 19.3, 12, ""], ["GJI SERVICIOS", "Estudio Legal", "México", 1548, 100, 17.5, 12, ""], ["RAMIREZ GUTIERREZ-AZPE RODRIGUEZ-RIVERO Y HURTADO", "Estudio Jurídico", "México", 1572, 100, 11.7, 3, ""], ["TROUPE CONSULTING", "—", "México", 1572, 100, 10.2, 3, ""], ["CLAUDIA PEREZ TADEO", "—", "México", 1572, 100, 8.3, 12, ""], ["KBSG", "—", "México", 1572, 100, 5.9, 3, ""], ["BRENDA IBARRA VAZQUEZ", "—", "México", 1572, 100, 5.5, 3, ""], ["FABIAN MARIA AGUINACO BRAVO", "Est. ≤200 causas", "México", 1704, 200, 18.0, 3, ""], ["LEXTRATEGA ABOGADOS", "—", "México", 1776, 200, 6.1, 3, ""], ["WILD CABO", "—", "México", 1860, 200, 3.9, 3, ""], ["CARDOSO SANCHEZ ABOGADOS", "Estudio Legal", "México", 1872, 200, 21.6, 12, ""], ["ALESNA CONSULTORES", "Estudio Jurídico", "México", 1932, 200, 12.8, 3, ""], ["ABOGADOS FLORES ASOCIADOS", "Estudio Legal", "México", 1932, 200, 13.1, 12, ""], ["ESTRELLA CRUZ GONZALEZ Y ASOCIADOS", "—", "México", 1968, 200, 9.7, 3, ""], ["ALIX AIRAM TRIMMER ESPINOSA", "Sin criterio", "México", 1968, 200, 12.0, 12, ""], ["ANA ALEJANDRA NIETO MARTINEZ", "—", "México", 2304, 400, 8.1, 3, ""], ["CONSULTORIA LEGAL PAM", "—", "México", 2436, 500, 10.7, 3, ""], ["RAMHER BUSINESS", "Estudio Legal", "México", 2520, 0, 21.1, 3, ""], ["ARMANDO JUAREZ BRIBIESCA", "Estudio Legal", "México", 2520, 400, 14.9, 12, ""], ["GUTIERREZ VAZQUEZ Y SERRA", "Estudio Legal", "México", 2556, 400, 12.2, 12, ""], ["SMPS LEGAL", "Est. ≤200 causas", "México", 3096, 200, 21.4, 12, ""], ["Acontar Consultoría en Negocios S.C.", "Fiscalía empresa", "México", 4092, 100, 14.6, 12, ""], ["PALOMINO FLORES HERNANDEZ ABOGADOS", "Estudio Legal", "México", 5052, 1500, 12.6, 3, ""], ["Álvaro Javier Muñoz Ramón Escudero", "Est. ≤200 causas", "Chile", 3192, 250, 15.9, 3, "Crítico"], ["Vergara Abogados Ltda", "—", "Chile", 1392, 50, 9.0, 3, "Medio"], ["VERGARA GALINDO CORREA ABOGADOS SPA", "—", "Chile", 2316, 100, 8.1, 12, "Medio"], ["Anchecta Romero & Asociados", "—", "Honduras", 996, 50, 7.5, 3, "Medio"], ["ECIJA GPA CIA LTDA.", "Est. ≤200 causas", "Ecuador", 1884, 200, 16.4, 12, "Medio"], ["Lucas Videla", "—", "Argentina", 5760, 2000, 5.4, 12, "Crítico"], ["ELIAS CALLES Y KARAM", "Est. ≤200 causas", "México", 1164, 50, 14.2, 3, "Medio"], ["JOSE ANTONIO SAGREDO TOSTADO", "—", "México", 2232, 400, 10.0, 12, "Medio"], ["Sagardía y Asociados Limitada", "—", "Chile", 1152, 50, 9.0, 3, "Crítico"], ["Next Legal Limitada", "—", "Chile", 1392, 50, 8.7, 3, "Crítico"], ["Asesorías Bofill Escobar Limitada", "Estudio Legal", "Chile", 1392, 100, 22.3, 3, "Crítico"], ["SYF CONSULTORES LIMITADA", "Est. ≤200 causas", "Chile", 1848, 200, 17.5, 1, "Medio"], ["Servicios profesionales Murua abogados y consultores limitada", "Estudio Legal", "Chile", 2196, 200, 10.5, 3, "Crítico"], ["MonteVerde Ltda", "Est. >200 causas", "Chile", 2388, 300, 13.8, 12, "Crítico"], ["ASESORIAS CSP LTDA", "—", "Chile", 3036, 400, 10.0, 6, "Medio"], ["Estudio Jurídico Palavicino Novoa y Cía Ltda", "Estudio Jurídico", "Chile", 3000, 400, 12.9, 12, "Medio"], ["GORMAY SERVICIOS LEGALES", "Estudio Legal", "México", 1416, 100, 12.2, 3, "Crítico"], ["VALENTE DAMIAN FUENTESTELLO", "—", "México", 1572, 100, 6.9, 6, "Medio"], ["TAXES AND LEGAL MVPH", "Estudio Jurídico", "México", 1884, 100, 12.6, 12, "Crítico"], ["ACIA ABOGADOS LIMITADA", "Est. ≤200 causas", "Chile", 2448, 300, 24.4, 3, "Crítico"], ["GRUPO SEV LIMITADA", "Estudio Legal", "Chile", 1848, 200, 24.4, 3, "Crítico"], ["Sociedad de Profesionales Quezada Borquez y Cía. Limitada", "Est. ≤200 causas", "Chile", 2400, 250, 22.0, 12, "Crítico"], ["Asesorías e inversiones del Solar Limitada", "Estudio Legal", "Chile", 1392, 50, 18.7, 12, "Crítico"], ["Fernando Javier Mejia Herrera", "Estudio Legal", "Honduras", 2172, 150, 21.6, 3, "Crítico"]];
+// RAW format: [nombre, seg, pais, arr, causas, tenure, contract_term, churn]
+const N=0,S=1,P=2,A=3,C=4,T=5,CT=6,CH=7;
+
+const TENURE = [23.9, 19.7, 22.9, 19.6, 26.2, 20.7, 5.0, 5.7, 7.4, 16.8, 6.0, 6.2, 12.7, 22.6, 22.3, 5.1, 10.8, 15.2, 23.0, 18.1, 13.4, 6.2, 19.6, 21.2, 3.9, 28.5, 17.0, 18.7, 5.8, 10.6, 10.5, 24.3, 7.0, 4.4, 10.2, 22.1, 5.3, 5.5, 12.9, 11.5, 15.7, 12.5, 10.3, 14.9, 4.8, 5.0, 9.9, 9.7, 4.1, 4.3, 7.8, 8.9, 12.2, 20.7, 17.0, 17.0, 7.9, 12.0, 19.1, 9.0, 6.4, 13.5, 17.7, 13.2, 7.2, 22.0, 19.5, 16.8, 11.1, 8.4, 6.6, 9.2, 17.5, 28.4, 23.9, 23.7, 22.7, 22.6, 21.6, 22.3, 4.1, 6.2, 17.7, 9.9, 11.2, 16.6, 4.6, 12.5, 7.6, 8.9, 14.8, 6.1, 17.0, 15.8, 8.2, 8.1, 16.3, 16.5, 11.3, 15.2, 15.1, 4.6, 12.4, 4.1, 8.3, 14.3, 10.6, 11.1, 14.5, 7.0, 11.3, 8.2, 14.4, 12.0, 18.2, 23.5, 23.2, 21.1, 23.0, 9.3, 21.4, 9.9, 9.0, 10.8, 28.1, 21.8, 13.1, 19.3, 17.5, 11.7, 10.2, 8.3, 5.9, 5.5, 18.0, 6.1, 3.9, 21.6, 12.8, 13.1, 9.7, 12.0, 8.1, 10.7, 21.1, 14.9, 12.2, 21.4, 14.6, 12.6, 15.9, 9.0, 8.1, 7.5, 16.4, 5.4, 14.2, 10.0, 9.0, 8.7, 22.3, 17.5, 10.5, 13.8, 10.0, 12.9, 12.2, 6.9, 12.6, 24.4, 24.4, 22.0, 18.7, 21.6];
+const ARR_V  = [924.0, 924.0, 924.0, 924.0, 924.0, 1152.0, 1248.0, 1248.0, 1704.0, 1248.0, 1248.0, 1248.0, 1320.0, 1848.0, 1392.0, 1392.0, 1704.0, 1848.0, 1392.0, 1392.0, 1392.0, 1392.0, 1392.0, 1392.0, 1392.0, 1620.0, 1848.0, 1392.0, 1392.0, 1572.0, 1584.0, 2316.0, 1668.0, 1668.0, 1668.0, 2028.0, 1848.0, 1848.0, 1848.0, 1848.0, 1848.0, 2316.0, 1848.0, 1848.0, 1848.0, 1848.0, 2076.0, 2076.0, 2076.0, 2724.0, 2124.0, 2172.0, 1152.0, 2316.0, 228.0, 2316.0, 2772.0, 2316.0, 2316.0, 3144.0, 2352.0, 0.0, 3048.0, 2700.0, 2772.0, 2772.0, 5364.0, 3000.0, 696.0, 3000.0, 3384.0, 3792.0, 5088.0, 576.0, 588.0, 708.0, 780.0, 828.0, 828.0, 840.0, 1056.0, 1176.0, 1668.0, 1356.0, 1572.0, 1572.0, 1572.0, 1644.0, 1740.0, 1776.0, 1776.0, 1776.0, 1776.0, 1776.0, 1788.0, 1968.0, 1968.0, 5028.0, 2556.0, 2556.0, 3600.0, 1008.0, 3888.0, 1416.0, 1572.0, 1968.0, 3288.0, 948.0, 1044.0, 1056.0, 1056.0, 1068.0, 1104.0, 1116.0, 1164.0, 1164.0, 2700.0, 1164.0, 3072.0, 1176.0, 1392.0, 1416.0, 1416.0, 1416.0, 1416.0, 1440.0, 1548.0, 1932.0, 1548.0, 1572.0, 1572.0, 1572.0, 1572.0, 1572.0, 1704.0, 1776.0, 1860.0, 1872.0, 1932.0, 1932.0, 1968.0, 1968.0, 2304.0, 2436.0, 2520.0, 2520.0, 2556.0, 3096.0, 4092.0, 5052.0, 3192.0, 1392.0, 2316.0, 996.0, 1884.0, 5760.0, 1164.0, 2232.0, 1152.0, 1392.0, 1392.0, 1848.0, 2196.0, 2388.0, 3036.0, 3000.0, 1416.0, 1572.0, 1884.0, 2448.0, 1848.0, 2400.0, 1392.0, 2172.0];
+const CAUSAS = [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 100.0, 50.0, 50.0, 50.0, 50.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 50.0, 50.0, 50.0, 100.0, 100.0, 50.0, 100.0, 100.0, 50.0, 50.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 150.0, 100.0, 100.0, 100.0, 100.0, 100.0, 200.0, 100.0, 100.0, 50.0, 100.0, 200.0, 200.0, 200.0, 400.0, 200.0, 200.0, 100.0, 200.0, 200.0, 200.0, 300.0, 200.0, 200.0, 400.0, 300.0, 0.0, 200.0, 400.0, 300.0, 400.0, 1000.0, 400.0, 200.0, 400.0, 500.0, 600.0, 1000.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 100.0, 50.0, 50.0, 100.0, 100.0, 100.0, 100.0, 100.0, 50.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 50.0, 200.0, 200.0, 1000.0, 300.0, 400.0, 400.0, 50.0, 1000.0, 100.0, 100.0, 200.0, 700.0, 50.0, 50.0, 50.0, 30.0, 50.0, 50.0, 50.0, 50.0, 100.0, 500.0, 100.0, 500.0, 50.0, 200.0, 100.0, 100.0, 100.0, 100.0, 100.0, 50.0, 200.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 400.0, 500.0, 0.0, 400.0, 400.0, 200.0, 100.0, 1500.0, 250.0, 50.0, 100.0, 50.0, 200.0, 2000.0, 50.0, 400.0, 50.0, 50.0, 100.0, 200.0, 200.0, 300.0, 400.0, 400.0, 100.0, 100.0, 100.0, 300.0, 200.0, 250.0, 50.0, 150.0];
+
+function fmt(n){ return Math.round(n).toLocaleString('es-CL'); }
+function ctPill(v){
+  if(v===12) return '<span class="pill pill-g">Anual</span>';
+  if(v===3)  return '<span class="pill pill-a">Trimestral</span>';
+  if(v===6)  return '<span class="pill pill-b">Semestral</span>';
+  return '<span class="pill pill-b">Mensual</span>';
+}
+function churnPill(v){
+  if(!v) return '<span style="color:var(--t3);font-size:12px;">—</span>';
+  return `<span class="pill pill-${v==='Crítico'?'r':'a'}">${v}</span>`;
+}
+
+// Risk table
+const sorted4risk = RAW.filter(r=>r[CH]).sort((a,b)=>b[A]-a[A]);
+const riskTbody = document.getElementById('riskTbody');
+sorted4risk.forEach(r=>{
+  const color = r[CH]==='Crítico'?'var(--red)':'var(--amber)';
+  riskTbody.innerHTML += `<tr><td class="tdn">${r[N]}</td><td>${r[P]}</td><td class="tdr" style="font-weight:600;color:${color};">${fmt(r[A])}</td><td class="tdr">${r[T]}</td><td>${churnPill(r[CH])}</td></tr>`;
+});
+
+// All clients table
+const sorted = [...RAW].sort((a,b)=>b[A]-a[A]);
+const allTbody = document.getElementById('allTbody');
+sorted.forEach((r,i)=>{
+  allTbody.innerHTML += `<tr><td style="color:var(--t3)">${i+1}</td><td class="tdn">${r[N]}</td><td style="font-size:12px;color:var(--t2);">${r[S]}</td><td>${r[P]}</td><td class="tdr" style="color:var(--lemon);font-weight:600;">${fmt(r[A])}</td><td class="tdr">${r[C]||'—'}</td><td class="tdr">${r[T]}</td><td>${ctPill(r[CT])}</td><td>${churnPill(r[CH])}</td></tr>`;
+});
+
+// Chart helpers
+const gc = id => document.getElementById(id).getContext('2d');
+const DEF = {borderRadius:4,borderSkipped:false};
+const GC = 'rgba(255,255,255,0.06)', TC = '#5e5e72';
+const LM='#a3e635', AM='#fbbf24', RD='#f87171', BL='#60a5fa';
+
+function hist(data, bins){
+  const counts = new Array(bins.length-1).fill(0);
+  data.forEach(v=>{
+    for(let i=0;i<bins.length-1;i++){
+      if(v>=bins[i] && (i===bins.length-2 ? v<=bins[i+1] : v<bins[i+1])){ counts[i]++; break; }
+    }
+  });
+  return counts;
+}
+
+// Bar label plugin (vertical bars only)
+const barLbl = {
+  id:'bl',
+  afterDatasetsDraw(ch){
+    if(ch.config.type!=='bar'||ch.config.options?.indexAxis==='y') return;
+    const ctx=ch.ctx;
+    ch.data.datasets.forEach((ds,di)=>{
+      ch.getDatasetMeta(di).data.forEach((bar,i)=>{
+        const v=ds.data[i]; if(!v) return;
+        ctx.save(); ctx.fillStyle='#9a9aaa';
+        ctx.font='500 11px -apple-system,sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText(v,bar.x,bar.y-3); ctx.restore();
+      });
+    });
+  }
+};
+// Country bar label plugin
+const cntryLbl = {
+  id:'cl',
+  afterDatasetsDraw(ch){
+    if(ch.config.options?.indexAxis!=='y') return;
+    const ctx=ch.ctx;
+    ch.data.datasets.forEach((ds,di)=>{
+      ch.getDatasetMeta(di).data.forEach((bar,i)=>{
+        const v=ds.data[i]; if(!v) return;
+        ctx.save(); ctx.fillStyle='#9a9aaa';
+        ctx.font='500 11px -apple-system,sans-serif';
+        ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText('$'+fmt(v),bar.x+6,bar.y); ctx.restore();
+      });
+    });
+  }
+};
+Chart.register(barLbl, cntryLbl);
+
+// Tenure histogram
+const tBins=[0,3,6,9,12,15,18,21,24,27,30];
+const tLbls=['0-3','3-6','6-9','9-12','12-15','15-18','18-21','21-24','24-27','27-30'];
+new Chart(gc('cTenure'),{type:'bar',data:{labels:tLbls,datasets:[{label:'Clientes',data:hist(TENURE,tBins),backgroundColor:'rgba(163,230,53,.55)',borderColor:LM,borderWidth:1,...DEF}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} clientes`}}},scales:{x:{grid:{color:GC},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC}}}}});
+
+// ARR histogram
+const aBins=[0,720,960,1200,1440,1680,1920,2160,2400,3000,3600,7000];
+const aLbls=['<720','720-960','960-1.2k','1.2-1.4k','1.4-1.7k','1.7-1.9k','1.9-2.2k','2.2-2.4k','2.4-3k','3-3.6k','3.6k+'];
+new Chart(gc('cARR'),{type:'bar',data:{labels:aLbls,datasets:[{label:'Clientes',data:hist(ARR_V,aBins),backgroundColor:'rgba(251,191,36,.55)',borderColor:AM,borderWidth:1,...DEF}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} clientes`}}},scales:{x:{grid:{color:GC},ticks:{color:TC,maxRotation:45}},y:{grid:{color:GC},ticks:{color:TC}}}}});
+
+// Causas histogram
+const cBins=[0,51,101,151,201,301,401,9999];
+const cLbls=['≤50','51-100','101-150','151-200','201-300','301-400','400+'];
+new Chart(gc('cCausas'),{type:'bar',data:{labels:cLbls,datasets:[{label:'Clientes',data:hist(CAUSAS,cBins),backgroundColor:'rgba(96,165,250,.55)',borderColor:BL,borderWidth:1,...DEF}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:GC},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC}}}}});
+
+// ARR by tenure bucket
+new Chart(gc('cTenurARR'),{type:'bar',data:{labels:['0-6 m','6-12 m','12-18 m','18-24 m','24+ m'],datasets:[{label:'ARR promedio',data:[1812,1848,2196,1668,1596],backgroundColor:['rgba(96,165,250,.5)','rgba(96,165,250,.5)','rgba(163,230,53,.6)','rgba(251,191,36,.5)','rgba(248,113,113,.5)'],borderColor:[BL,BL,LM,AM,RD],borderWidth:1,...DEF}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`$${fmt(c.raw)} ARR promedio`}}},scales:{x:{grid:{color:GC},ticks:{color:TC}},y:{grid:{color:GC},ticks:{color:TC,callback:v=>'$'+fmt(v)},min:1200}}}});
+
+// Scatter
+const scatterData = TENURE.map((t,i)=>{const r=RAW[i]; return{x:t,y:ARR_V[i],name:r?r[N]:''}});
+new Chart(gc('cScatter'),{type:'scatter',data:{datasets:[{label:'Clientes',data:scatterData,backgroundColor:'rgba(163,230,53,.5)',borderColor:'rgba(163,230,53,.8)',pointRadius:5,pointHoverRadius:7}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>[c.raw.name,`Tenure: ${c.raw.x} m  ·  ARR: $${fmt(c.raw.y)}`]}}},scales:{x:{title:{display:true,text:'Tenure (meses)',color:TC},grid:{color:GC},ticks:{color:TC}},y:{title:{display:true,text:'ARR USD',color:TC},grid:{color:GC},ticks:{color:TC,callback:v=>'$'+fmt(v)}}}}});
+
+// Country
+const ctry=[['Chile',169836],['México',90396],['Perú',20040],['Colombia',13932],['Ecuador',11256],['Argentina',5760],['Guatemala',3888],['Honduras',3168]];
+new Chart(gc('cCountry'),{type:'bar',data:{labels:ctry.map(d=>d[0]),datasets:[{label:'ARR',data:ctry.map(d=>d[1]),backgroundColor:['rgba(163,230,53,.6)','rgba(163,230,53,.45)','rgba(96,165,250,.5)','rgba(96,165,250,.5)','rgba(96,165,250,.5)','rgba(167,139,250,.5)','rgba(167,139,250,.5)','rgba(167,139,250,.5)'],borderWidth:0,...DEF}]},options:{indexAxis:'y',layout:{padding:{right:100}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`$${fmt(c.raw)} ARR`}}},scales:{x:{display:false,grid:{display:false}},y:{grid:{color:GC},ticks:{color:TC}}}}});
+
+// Segmento doughnut
+const seg=[['Otro/Sin datos',121452],['Estudio Legal',78900],['Est. ≤200 causas',66540],['Estudio Jurídico',24264],['Est. >200 causas',18612],['Sin segmento',11064],['Fiscalía empresa',4092],['Fiscalía',2784]];
+new Chart(gc('cSeg'),{type:'doughnut',data:{labels:seg.map(d=>d[0]),datasets:[{data:seg.map(d=>d[1]),backgroundColor:['rgba(248,113,113,.7)','rgba(163,230,53,.7)','rgba(96,165,250,.7)','rgba(251,191,36,.7)','rgba(167,139,250,.7)','rgba(156,163,175,.5)','rgba(20,184,166,.7)','rgba(244,114,182,.7)'],borderWidth:0,hoverOffset:4}]},options:{cutout:'62%',plugins:{legend:{position:'right',labels:{color:TC,font:{size:11},boxWidth:12,padding:10}},tooltip:{callbacks:{label:c=>`$${fmt(c.raw)} ARR`}}}}});
+
+// Contract doughnut
+new Chart(gc('cContract'),{type:'doughnut',data:{labels:['Trimestral (3m)','Anual (12m)','Semestral (6m)','Mensual (1m)'],datasets:[{data:[186696,115296,23868,1848],backgroundColor:['rgba(251,191,36,.7)','rgba(163,230,53,.7)','rgba(96,165,250,.7)','rgba(248,113,113,.5)'],borderWidth:0,hoverOffset:4}]},options:{cutout:'62%',plugins:{legend:{position:'right',labels:{color:TC,font:{size:12},boxWidth:12}},tooltip:{callbacks:{label:c=>`$${fmt(c.raw)} ARR`}}}}});
+</script>
+</body>
+</html>
